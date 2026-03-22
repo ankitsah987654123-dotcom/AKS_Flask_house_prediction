@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>House Price Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #151821;
+    --card: #1c2030;
+    --border: #2a2f42;
+    --gold: #c9a84c;
+    --gold-light: #f0cc7a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --text: #e8e4d8;
+    --muted: #7a7f96;
+    --success: #4caf82;
+    --input-bg: #111420;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    overflow-x: hidden;
+  }
+
+  /* Atmospheric background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 10%, rgba(201,168,76,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 90%, rgba(76,175,130,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 540px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+    animation: fadeDown 0.7s ease both;
+  }
+
+  .header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  .header h1 span {
+    color: var(--gold);
+  }
+
+  .header p {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  /* House icon decoration */
+  .house-icon {
+    position: absolute;
+    top: 24px; right: 28px;
+    opacity: 0.08;
+    font-size: 80px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Input group */
+  .input-group {
+    margin-bottom: 24px;
+    position: relative;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .input-group:nth-child(1) { animation-delay: 0.2s; }
+  .input-group:nth-child(2) { animation-delay: 0.3s; }
+  .input-group:nth-child(3) { animation-delay: 0.4s; }
+
+  .input-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+
+  .input-group label .icon {
+    font-size: 14px;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+
+  .input-row:focus-within {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-dim);
+  }
+
+  .input-row input[type="number"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 14px 16px;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+
+  .input-row input[type="number"]::-webkit-outer-spin-button,
+  .input-row input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+
+  /* Stepper buttons */
+  .stepper {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+  }
+
+  .stepper button {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 8px 14px;
+    font-size: 12px;
+    line-height: 1;
+    transition: color 0.15s, background 0.15s;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stepper button:hover {
+    color: var(--gold);
+    background: var(--gold-dim);
+  }
+
+  .stepper button:first-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .unit-tag {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 0 14px;
+    white-space: nowrap;
+    border-left: 1px solid var(--border);
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* Range hint */
+  .range-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    padding-left: 2px;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* Predict button */
+  .predict-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+    color: #0d0f14;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .predict-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .predict-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(201,168,76,0.35);
+  }
+
+  .predict-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  /* Result box */
+  .result-box {
+    margin-top: 24px;
+    background: linear-gradient(135deg, rgba(76,175,130,0.08) 0%, rgba(76,175,130,0.03) 100%);
+    border: 1px solid rgba(76,175,130,0.3);
+    border-radius: 14px;
+    padding: 24px;
+    display: none;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+
+  .result-box.visible { display: block; }
+
+  .result-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--success);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .result-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.6rem;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .result-value span {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    margin-left: 6px;
+  }
+
+  .result-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Summary pills */
+  .summary-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .pill {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--muted);
+    animation: fadeUp 0.7s 0.5s ease both;
+    opacity: 0;
+  }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="eyebrow">ML Prediction Model</div>
+    <h1>House Price<br><span>Estimator</span></h1>
+    <p>Enter property details to get an instant AI-powered valuation</p>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="house-icon">🏠</div>
+
+    <!-- Area -->
+    <div class="input-group">
+      <label><span class="icon">📐</span> Built-up Area</label>
+      <div class="input-row">
+        <input type="number" id="area" value="1500" min="500" max="5000" step="50" oninput="clamp(this,500,5000)"/>
+        <div class="unit-tag">sq ft</div>
+        <div class="stepper">
+          <button onclick="step('area', 50, 500, 5000)">▲</button>
+          <button onclick="step('area', -50, 500, 5000)">▼</button>
+        </div>
+      </div>
+      <div class="range-hint">Range: 500 – 5,000 sq ft</div>
+    </div>
+
+    <!-- Bedrooms -->
+    <div class="input-group">
+      <label><span class="icon">🛏</span> Bedrooms</label>
+      <div class="input-row">
+        <input type="number" id="bedrooms" value="3" min="1" max="10" step="1" oninput="clamp(this,1,10)"/>
+        <div class="unit-tag">BHK</div>
+        <div class="stepper">
+          <button onclick="step('bedrooms', 1, 1, 10)">▲</button>
+          <button onclick="step('bedrooms', -1, 1, 10)">▼</button>
+        </div>
+      </div>
+      <div class="range-hint">Range: 1 – 10 bedrooms</div>
+    </div>
+
+    <!-- Age -->
+    <div class="input-group">
+      <label><span class="icon">🏗</span> Age of House</label>
+      <div class="input-row">
+        <input type="number" id="age" value="5" min="0" max="50" step="1" oninput="clamp(this,0,50)"/>
+        <div class="unit-tag">years</div>
+        <div class="stepper">
+          <button onclick="step('age', 1, 0, 50)">▲</button>
+          <button onclick="step('age', -1, 0, 50)">▼</button>
+        </div>
+      </div>
+      <div class="range-hint">Range: 0 – 50 years</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="predict-btn" onclick="predictPrice()">⚡ Predict Price</button>
+
+    <!-- Result -->
+    <div class="result-box" id="resultBox">
+      <div class="result-label">✦ Estimated Price</div>
+      <div class="result-value" id="resultValue">—<span>Lakhs</span></div>
+      <div class="result-note">Based on area, bedrooms & age — model prediction only.</div>
+      <div class="summary-pills" id="summaryPills"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Powered by Machine Learning · House Prices Model v1.0
+  </div>
+
+</div>
+
+<script>
+  function clamp(el, min, max) {
+    let v = parseFloat(el.value);
+    if (!isNaN(v)) {
+      if (v < min) el.value = min;
+      if (v > max) el.value = max;
+    }
+  }
+
+  function step(id, delta, min, max) {
+    const el = document.getElementById(id);
+    let v = parseFloat(el.value) || 0;
+    v = Math.min(max, Math.max(min, v + delta));
+    el.value = v;
+  }
+
+  function predictPrice() {
+    const area = parseFloat(document.getElementById('area').value) || 0;
+    const bedrooms = parseFloat(document.getElementById('bedrooms').value) || 0;
+    const age = parseFloat(document.getElementById('age').value) || 0;
+
+    if (area < 500 || area > 5000) return alert('Area must be between 500 and 5000 sq ft');
+    if (bedrooms < 1 || bedrooms > 10) return alert('Bedrooms must be between 1 and 10');
+    if (age < 0 || age > 50) return alert('Age must be between 0 and 50 years');
+
+    // ── REPLACE THIS BLOCK with your actual model call ──
+    // e.g. via a Flask/FastAPI endpoint:
+    //   const res = await fetch('/predict', { method:'POST', body: JSON.stringify({area, bedrooms, age}) })
+    //   const { price } = await res.json();
+    // For now, using a demo linear formula:
+    const price = ((area * 0.008) + (bedrooms * 1.5) - (age * 0.3)).toFixed(2);
+    // ────────────────────────────────────────────────────
+
+    document.getElementById('resultValue').innerHTML =
+      `${price}<span>Lakhs</span>`;
+
+    document.getElementById('summaryPills').innerHTML = `
+      <div class="pill">📐 ${area} sq ft</div>
+      <div class="pill">🛏 ${bedrooms} BHK</div>
+      <div class="pill">🏗 ${age} yr old</div>
+    `;
+
+    const box = document.getElementById('resultBox');
+    box.classList.remove('visible');
+    void box.offsetWidth;
+    box.classList.add('visible');
+  }
+</script>
+</body>
+</html>
